@@ -29,3 +29,5 @@ julia> import Plots
 
 julia> Plots.plot(M, real.(e))
 ```
+
+![example1](assets/plot1.svg)

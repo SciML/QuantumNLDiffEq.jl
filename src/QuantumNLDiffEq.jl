@@ -1,7 +1,7 @@
 module QuantumNLDiffEq
-	import Yao: AbstractBlock, zero_state, expect, dispatch!, dispatch, chain
-	import Flux: update!, ADAM, mse
-	import Zygote: Buffer, gradient, ignore
+import Yao: AbstractBlock, zero_state, expect, dispatch!, dispatch, chain
+import Flux: update!, ADAM, mse
+import Zygote: Buffer, gradient, ignore
 	
 	abstract type FeatureMap end
 	abstract type BoundaryHandling end
