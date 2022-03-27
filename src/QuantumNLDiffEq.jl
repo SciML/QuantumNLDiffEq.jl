@@ -37,8 +37,8 @@ module QuantumNLDiffEq
 		return real.(Loss_diff/length(M))
 	end
 	
-	function train!(feature_map_circuit::AbstractBlock, cost::AbstractBlock, var::AbstractBlock, M::AbstractVector, N::Int, u_0::Real, theta; mapping::FeatureMap=Chebyshev(), boundary::BoundaryHandling=Floating(), optimizer=ADAM(0.1))
-		for i in 1:300
+	function train!(feature_map_circuit::AbstractBlock, cost::AbstractBlock, var::AbstractBlock, M::AbstractVector, N::Int, u_0::Real, theta; mapping::FeatureMap=Chebyshev(), boundary::BoundaryHandling=Floating(), optimizer=ADAM(0.1), steps=300)
+		for i in 1:steps
 			grads = gradient(_theta->loss(feature_map_circuit, cost, var, M, N, u_0, _theta; mapping), theta)[1]
 			update!(optimizer, theta, grads)
 			dispatch!(var, theta)
