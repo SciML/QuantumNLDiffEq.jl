@@ -4,7 +4,7 @@ using Yao: dispatch, EasyBuild, put, Z, chain, Ry, parameters, zero_state, expec
 using Zygote: gradient
 
 @testset "Match trained equation" begin
-	M = range(start=0; stop=0.9, length=20)
+	M = range(0, stop=0.9, length=20)
         cost = sum([put(6, i=>Z) for i in 1:6])
         var = dispatch(EasyBuild.variational_circuit(6,5), :random)
         quantum_feature_map_circuit = chain(6, [put(i=>Ry(0)) for i in 1:6])
@@ -15,7 +15,7 @@ using Zygote: gradient
         
          e = real.([expect(cost, zero_state(N)=>QuantumNLDiffEq.new_circuit(quantum_feature_map_circuit, var, i, params, N; mapping=QuantumNLDiffEq.Chebyshev())) .+ u_0 .- expect(cost, zero_state(N)=>QuantumNLDiffEq.new_circuit(quantum_feature_map_circuit, var, M[1], params, N; mapping=QuantumNLDiffEq.Chebyshev()))  for i in M])
          
-	≃(a, b) = round(a, digits = 2) ==  round(a, digits = 2)
+	≃(a, b) = round(a, digits = 2) ==  round(b, digits = 2)
 	@test e[1] ≃ 1.0
 	@test e[2] ≃ 0.83986
 	@test e[6] ≃ -0.236077
