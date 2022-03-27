@@ -30,4 +30,4 @@ julia> import Plots
 julia> Plots.plot(M, real.(e))
 ```
 
-![example1](assets/plot1.svg)
+![example1](https://github.com/SciML/QuantumNLDiffEq.jl/pull/1#discussion_r835900082)
