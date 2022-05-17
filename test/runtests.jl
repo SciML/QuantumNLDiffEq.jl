@@ -33,15 +33,15 @@ end
          
 	@testset "Check if FD works" begin
 		t = 6
-		evalue(x) = expect(cost, zero_state(N)=>QuantumNLDiffEq.new_circuit(quantum_feature_map_circuit, var, x, params, N; mapping=QuantumNLDiffEq.Chebyshev()))
+		evalue(x) = expect(cost, zero_state(N)=>QuantumNLDiffEq.new_circuit(quantum_feature_map_circuit, var, x, params, N, 2; mapping=QuantumNLDiffEq.ChebyshevSparse()))
 
 		x_fd = M[t]
 		dx = 0.0001
 		x_fd += dx
 		loss_grad_fd = (evalue(x_fd) - evalue(M[t]))/dx
 
-		@test QuantumNLDiffEq.calculate_diff_evalue(quantum_feature_map_circuit, cost, var, N, params, M[t]; mapping=QuantumNLDiffEq.Chebyshev()) ≃ loss_grad_fd
+		@test QuantumNLDiffEq.calculate_diff_evalue(quantum_feature_map_circuit, cost, var, N, params, M[t], 2; mapping=QuantumNLDiffEq.ChebyshevSparse()) ≃ loss_grad_fd
 	end
 	
-	@test loss(quantum_feature_map_circuit, cost, var, M, N, u_0, params; mapping=QuantumNLDiffEq.Chebyshev()) < 1.0
+	@test loss(quantum_feature_map_circuit, cost, var, M, N, u_0, params, 2; mapping=QuantumNLDiffEq.ChebyshevSparse()) < 1.0
 end
