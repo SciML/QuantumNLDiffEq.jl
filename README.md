@@ -32,4 +32,4 @@ julia> import Plots
 julia> Plots.plot(new_M, real.(e(new_M)), xlabel="x", ylabel="f(x)", legend=false)
 ```
 
-![example1](https://user-images.githubusercontent.com/51269425/160281466-ced2acc9-fb2e-4ad0-a23a-4bc1dfd934a9.svg)
+![example1](https://user-images.githubusercontent.com/51269425/168702556-a8e61629-038e-4a9e-be73-7ca8acb4316b.svg)
