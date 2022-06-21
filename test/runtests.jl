@@ -12,6 +12,6 @@ using DifferentialEquations
 	prob = ODEProblem(f, [1.0], (0.0, 0.9), [8.0, 0.1])
 	DQC = [QuantumNLDiffEq.DQCType(QuantumNLDiffEq.ChebyshevSparse(2), QuantumNLDiffEq.Floating(), chain(6, [put(i=>Ry(0)) for i in 1:6]), sum([put(6, i=>Z) for i in 1:6]), dispatch(EasyBuild.variational_circuit(6,5), :random), 6)]
 	params = [parameters(DQC[1].var)]
-	QuantumNLDiffEq.train!(DQC, prob, range(start=0; stop=0.9, length=20), params)
-	@test QuantumNLDiffEq.loss(DQC, prob, range(start=0; stop=0.9, length=20), params) < 1.0
+	QuantumNLDiffEq.train!(DQC, prob, range(0, 0.9, length=20), params)
+	@test QuantumNLDiffEq.loss(DQC, prob, range(0, 0.9, length=20), params) < 1.0
 end
