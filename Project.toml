@@ -5,18 +5,20 @@ version = "0.0.1"
 
 [deps]
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
-Flux = "0.12, 0.13"
-Yao = "0.7"
+Flux = "0.13"
+Yao = "0.8"
 Zygote = "0.6"
 julia = "1.6"
 
 [extras]
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 
 [targets]
-test = ["SafeTestsets", "Test"]
+test = ["SafeTestsets", "Test", "DifferentialEquations"]

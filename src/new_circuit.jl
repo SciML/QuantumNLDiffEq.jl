@@ -1,14 +1,18 @@
-function load(x, pc, N, mapping::Union{Product,ChebyshevSparse})
-	return repeat([phi(x, pc, mapping)], N)
+function load(x, N, mapping::Product)
+	return repeat([phi(x, mapping)], N)
 end
 
-function load(x, pc, N, mapping::ChebyshevTower)
-	return [phi(x, pc*i, mapping) for i in 1:N]
+function load(x, N, mapping::ChebyshevSparse)
+	return repeat([phi(x, mapping)], N)
 end
 
-function new_circuit(feature_map_circuit::AbstractBlock, var::AbstractBlock, x, theta, N::Int, pc, n=1, v=0; mapping::FeatureMap)
-	tmp = load(x, pc, N, mapping)
-    f = [i == n ? tmp[i] .+ v : tmp[i] for i in 1:N]
+function load(x, N, mapping::ChebyshevTower)
+	return [i*phi(x, mapping) for i in 1:N]
+end
 
-	return chain(N, dispatch(feature_map_circuit, f), dispatch(var, theta))
+function new_circuit(DQC::DQCType, x, theta, n=1, v=0)
+	tmp = load(x, DQC.N, DQC.afm)
+	f = [i == n ? tmp[i] .+ v : tmp[i] for i in 1:DQC.N]
+	
+	return chain(DQC.N, dispatch(DQC.fm, f), dispatch(DQC.var, theta))
 end
