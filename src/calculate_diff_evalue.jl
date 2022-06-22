@@ -7,7 +7,7 @@ function map_to_circuit(a, b::Real, ::ChebyshevTower)
 end
 
 function calculate_diff_evalue(DQC::DQCType, theta, x)
-	diff_evalue = 0.0
+	diff_evalue = ComplexF64(0.0)
 	for j in 1:DQC.N
 		diff_evalue_pos = expect(DQC.cost, zero_state(DQC.N) => new_circuit(DQC, x, theta, j, pi/2))
 		diff_evalue_neg = expect(DQC.cost, zero_state(DQC.N) => new_circuit(DQC, x, theta, j, -pi/2))
