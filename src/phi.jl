@@ -1,8 +1,8 @@
-function phi(x, ::Real, ::Product)
+function phi(x, ::Product)
 	return asin(x)
 end
 
-function phi(x, b::Real, ::Union{ChebyshevSparse, ChebyshevTower})
-	return b*acos(x)
+function phi(x, mapping::Union{ChebyshevSparse, ChebyshevTower})
+	return mapping.pc*acos(x)
 end
 
