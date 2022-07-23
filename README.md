@@ -24,11 +24,11 @@ end
 DQC = [QuantumNLDiffEq.DQCType(afm = QuantumNLDiffEq.ChebyshevSparse(2), fm = chain(6, [put(i=>Ry(0)) for i in 1:6]), cost = [Add([put(6, i=>Z) for i in 1:6])], var = dispatch(EasyBuild.variational_circuit(6,5), :random), N = 6)]
 config = DQCConfig(abh = QuantumNLDiffEq.Floating(), loss = loss_func)
 M = range(start=0; stop=0.9, length=20)
-evalue(M) = [QuantumNLDiffEq.calculate_evalue(DQC[1], DQC[1].cost, prob.u0[1], conf.abh, params[1], M[x], M[1]) for x in 1:length(M)]
+evalue(M) = [QuantumNLDiffEq.calculate_evalue(DQC[1], DQC[1].cost, prob.u0[1], config.abh, params[1], M[x], M[1]) for x in 1:length(M)]
 params = [Yao.parameters(DQC[1].var)]
 
 #Training the circuit
-QuantumNLDiffEq.train!(DQC, prob, conf, M, params)
+QuantumNLDiffEq.train!(DQC, prob, config, M, params)
 
 #Plotting the solution
 using Plots
@@ -36,4 +36,4 @@ new_M = range(start=0; stop=0.9, length=100)
 Plots.plot(new_M, reduce(vcat, real.(evalue(new_M))), xlabel="x", ylabel="f(x)", legend=false)
 ```
 
-![example1](https://user-images.githubusercontent.com/51269425/168702556-a8e61629-038e-4a9e-be73-7ca8acb4316b.svg)
+![example1](https://user-images.githubusercontent.com/51269425/180599519-4e29b5c0-36e9-497b-b63c-db97d14a1050.png)

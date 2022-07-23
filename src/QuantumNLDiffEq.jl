@@ -7,12 +7,16 @@ import SciMLBase: AbstractODEProblem, AbstractSciMLOperator, ODEFunction
 import ForwardDiff: jacobian 
 import ChainRulesCore: rrule, NoTangent
 
-function rrule(func::ODEFunction, u, p, t)
-    y = func(u,p,t)
+function ODEEncode(u, p, t, ode::ODEFunction)
+	return ode(u,p,t)
+end
+
+function rrule(::typeof(ODEEncode), u, p, t, ode::ODEFunction)
+    y = ODEEncode(u, p, t, ode)
     function func_pullback(ȳ)
-        Ju = jacobian((u)->func(u,p,t),u)
-        Jp = jacobian((p)->func(u,p,t),p)
-        NoTangent(), Ju'*ȳ, Jp'*ȳ, NoTangent()
+        Ju = jacobian((u)->ODEEncode(u, p, t, ode), u)
+        Jp = jacobian((p)->ODEEncode(u, p, t, ode), p)
+        NoTangent(), Ju'*ȳ, Jp'*ȳ, NoTangent(), NoTangent()
     end
     return y, func_pullback
 end
@@ -80,12 +84,12 @@ function train!(DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem, 
 			fc = config.abh.fc
 			grads = gradient((_theta, _fc) -> loss(DQC, prob, conf(_fc, config), M, _theta), theta, fc)
 			if DQC isa DQCType
-				for (p,g) in zip([theta, [fc]], [grads[1], grads[2]])
+				for (p,g) in zip([theta, [fc]], [grads[1], [grads[2]]])
 					update!(optimizer, p, g)
 				end
 				dispatch!(DQC.var, theta)
 			else
-				for (p,g) in zip([theta, [[fc]]], [grads[1], [grads[2]]])
+				for (p,g) in zip([theta, [[fc]]], [grads[1], [[grads[2]]]])
 					for (x,y) in zip(p,g)
 						update!(optimizer, x, y)
 					end

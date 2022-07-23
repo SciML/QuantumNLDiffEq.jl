@@ -25,7 +25,7 @@ M = range(0; stop=0.9, length=20)
 			conf = config(QuantumNLDiffEq.Pinned(2.5))
 			params = [parameters(DQC[1].var)]
 			QuantumNLDiffEq.train!(DQC, prob, conf, M, params)
-			@test QuantumNLDiffEq.loss(DQC, prob, conf, M, params) < 0.5
+			@test QuantumNLDiffEq.loss(DQC, prob, conf, M, params) < 2.0
 		end
 		
 		@testset "Test for Floating Boundary Handling" begin

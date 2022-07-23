@@ -26,13 +26,13 @@ function loss_diff(DQC::Vector{DQCType}, prob::AbstractODEProblem, M::AbstractVe
 		throw("Number of encoded equations don't match number of DQCs")
 	end
 	cost = calc_cost(DQC, cost_params)
-	Loss_diff = 0.0
+	Loss_diff = ComplexF64(0.0)
 	for x in 1:length(M)
 		evalue = [calculate_evalue(DQC[i], cost[i], prob.u0[i], abh, theta[i], M[x], M[1]) for i in 1:no_eqns]
 		
 		diff_evalue = [calculate_diff_evalue(DQC[i], cost[i], theta[i], M[x]) for i in 1:no_eqns]
 		
-		du = prob.f(real.(evalue), prob.p, M[x])
+		du = ODEEncode(real.(evalue), prob.p, M[x], prob.f)
 		loss_ind = [loss(diff_evalue[i], du[i]) for i in 1:no_eqns]
 		
 		Loss_diff += sum(loss_ind)
@@ -47,14 +47,14 @@ function loss_diff(DQC::DQCType, prob::AbstractODEProblem, M::AbstractVector, co
 	elseif no_eqns != length(DQC.cost)
 		throw("Number of encoded equations don't match number of cost functions")
 	end
-	Loss_diff = 0.0
+	Loss_diff = ComplexF64(0.0)
 	cost = calc_cost(DQC, cost_params)
 	for x in 1:length(M)
 		evalue = [calculate_evalue(DQC, cost[i], prob.u0[i], abh, theta, M[x], M[1]) for i in 1:no_eqns]
 
 		diff_evalue = [calculate_diff_evalue(DQC, cost[i], theta, M[x]) for i in 1:no_eqns]
 		
-		du = prob.f(real.(evalue), prob.p, M[x])
+		du = ODEEncode(real.(evalue), prob.p, M[x], prob.f)
 		loss_ind = [loss(diff_evalue[i], du[i]) for i in 1:no_eqns]
 		
 		Loss_diff += sum(loss_ind)
@@ -69,7 +69,7 @@ end
 function loss_reg(DQC::DQCType, u0::Vector{Float64}, rp::RegularisationParams, cost_params::AbstractCostParams, abh::AbstractBoundaryHandling, loss::Function, theta::Vector{Float64})
 	no_eqns = length(u0)
 	cost = calc_cost(DQC, cost_params)
-	Loss_reg = 0.0
+	Loss_reg = ComplexF64(0.0)
 	for x in 1:length(rp.M_reg)
 		evalue = [calculate_evalue(DQC, cost[i], u0[i], abh, theta, rp.M_reg[x], rp.M_reg[1]) for i in 1:no_eqns]
 		loss_ind = [loss(evalue[i], rp.u_reg[i][x]) for i in 1:no_eqns]
@@ -81,7 +81,7 @@ end
 function loss_reg(DQC::Vector{DQCType}, u0::Vector{Float64}, rp::RegularisationParams, cost_params::AbstractCostParams, abh::AbstractBoundaryHandling, loss::Function, theta::Vector{Vector{Float64}})
 	no_eqns = length(DQC)
 	cost = calc_cost(DQC, cost_params)
-	Loss_reg = 0.0
+	Loss_reg = ComplexF64(0.0)
 	for x in 1:length(rp.M_reg)
 		evalue = [calculate_evalue(DQC[i], cost[i], u0[i], abh, theta[i], rp.M_reg[x], rp.M_reg[1]) for i in 1:no_eqns]
 		loss_ind = [loss(evalue[i], rp.u_reg[i][x]) for i in 1:no_eqns]
