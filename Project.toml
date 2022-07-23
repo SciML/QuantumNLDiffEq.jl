@@ -12,7 +12,10 @@ Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
-SciMLBase = "1.41"
+ChainRulesCore = "1.15"
+Flux = "0.13"
+ForwardDiff = "0.10"
+SciMLBase = "1.43"
 Yao = "0.8"
 Zygote = "0.6"
 julia = "1.6"
