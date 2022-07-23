@@ -5,7 +5,6 @@ using Zygote: gradient
 using DifferentialEquations
 using Flux: Adam
 
-#=
 @testset "Tests for damped oscillation equations" begin
 	function f(u, p, t)
 		λ, κ = p
@@ -71,7 +70,7 @@ using Flux: Adam
 			@test QuantumNLDiffEq.loss(input, prob, config, M, params) < 0.5
 		end
 	end
-	#
+	
 	@testset "Regularization Tests" begin
 		@testset "Singlular Encoding" begin
 			DQC = QuantumNLDiffEq.DQCType(afm = QuantumNLDiffEq.ChebyshevSparse(2), fm = chain(6, [put(i=>Ry(0)) for i in 1:6]), cost = [[Add([put(6, i=>Z) for i in 1:6])]], var = dispatch(EasyBuild.variational_circuit(6,5), :random), N = 6)
@@ -96,7 +95,7 @@ using Flux: Adam
 		end
 	end
 end
-=#
+
 
 @testset "Encoding multifunction system" begin
 	function f(u, p, t)
