@@ -110,6 +110,6 @@ end
 	DQC = repeat(QuantumNLDiffEq.DQCType(afm = QuantumNLDiffEq.ChebyshevTower(2), fm = chain(6, [put(i=>Ry(0)) for i in 1:6]), cost = [sum([put(6, i=>Z) for i in 1:6])], var = dispatch(EasyBuild.variational_circuit(6,5), :random), N = 6), 2)
 	params = [Yao.parameters(DQC[1].var), Yao.parameters(DQC[2].var)]
 	M = range(start=0; stop=0.9, length=20)
-	QuantumNLDiffEq.train!(DQC, prob, config, M, params; optimizer=Adam(0.02) steps = 400)
+	QuantumNLDiffEq.train!(DQC, prob, config, M, params; optimizer=Adam(0.02), steps = 400)
 	@test QuantumNLDiffEq.loss(DQC, prob, config, M, params) < 0.05
 end
