@@ -1,64 +1,137 @@
 module QuantumNLDiffEq
 
-import Yao: AbstractBlock, zero_state, expect, dispatch!, dispatch, chain
-import Flux: update!, ADAM, mse
-import Zygote: Buffer, gradient, ignore
-import SciMLBase: AbstractODEProblem, AbstractSciMLOperator
-	
+import Yao: AbstractBlock, zero_state, expect, dispatch!, dispatch, chain, Add, Scale, TimeEvolution, IdentityGate, igate
+import Flux: update!, Adam
+import Zygote: gradient
+import SciMLBase: AbstractODEProblem, AbstractSciMLOperator, ODEFunction
+import ForwardDiff: jacobian 
+import ChainRulesCore: rrule, NoTangent
+
+function rrule(func::ODEFunction, u, p, t)
+    y = func(u,p,t)
+    function func_pullback(ȳ)
+        Ju = jacobian((u)->func(u,p,t),u)
+        Jp = jacobian((p)->func(u,p,t),p)
+        NoTangent(), Ju'*ȳ, Jp'*ȳ, NoTangent()
+    end
+    return y, func_pullback
+end
+
 abstract type AbstractFeatureMap end
 abstract type AbstractBoundaryHandling end
 abstract type AbstractLoss end
+abstract type AbstractRegularisationParams end
+abstract type AbstractCostParams end
 		
 struct Product <: AbstractFeatureMap end
-struct ChebyshevSparse <: AbstractFeatureMap pc::Int64 end
-struct ChebyshevTower <: AbstractFeatureMap pc::Int64 end
-struct Pinned <: AbstractBoundaryHandling end
+struct ChebyshevSparse <: AbstractFeatureMap 
+	pc::Int64 
+end
+struct ChebyshevTower <: AbstractFeatureMap 
+	pc::Int64 
+end
+Base.@kwdef mutable struct Pinned <: AbstractBoundaryHandling 
+	eta::Float64 = 1.0
+end
 struct Floating <: AbstractBoundaryHandling end
+struct Optimized <: AbstractBoundaryHandling 
+	fc::Float64 
+end
+struct NoRegularisation <: AbstractRegularisationParams end
+mutable struct RegularisationParams <: AbstractRegularisationParams
+	u_reg::Vector{Vector{Float64}}
+	M_reg::Vector{Float64}
+	reg_param::Float64
+end
+struct NoCostParams <: AbstractCostParams end
+struct CostParams <: AbstractCostParams
+	lambda::Vector{Vector{Float64}}
+end
 
-mutable struct DQCType
+Base.@kwdef mutable struct DQCType
 	afm::AbstractFeatureMap
-	abh::AbstractBoundaryHandling
 	fm::AbstractBlock
-	cost::AbstractBlock
+	cost::Union{Vector{<:AbstractBlock}, Vector{<:Vector{<:AbstractBlock}}}
 	var::AbstractBlock
 	N::Int64
+	evol::Union{TimeEvolution, IdentityGate} = igate(N)
+end
+
+Base.@kwdef mutable struct DQCConfig
+	reg::AbstractRegularisationParams = NoRegularisation()
+	cost_params::AbstractCostParams = NoCostParams()
+	abh::AbstractBoundaryHandling
+	loss::Function
 end
 
 include("phi.jl")
 include("new_circuit.jl")
 include("calculate_diff_evalue.jl")
+include("calculate_evalue.jl")
+include("loss.jl")
 
-
-function loss(DQC::Vector{DQCType}, prob::AbstractODEProblem, M::AbstractVector, theta)
-	no_eqns = length(DQC)
-	if no_eqns != length(prob.u0)
-		throw("Number of encoded equations don't match number of DQCs")
-	end
-	Loss_diff = 0.0
-	for x in 1:length(M)
-		evalue = [expect(DQC[i].cost, zero_state(DQC[i].N) => new_circuit(DQC[i], M[x], theta[i])) - expect(DQC[i].cost, zero_state(DQC[i].N) => new_circuit(DQC[i], M[1], theta[i])) + prob.u0[i] for i in 1:no_eqns]
-
-		diff_evalue = [calculate_diff_evalue(DQC[i], theta[i], M[x]) for i in 1:no_eqns]
-		
-		du = prob.f(zeros(no_eqns), evalue, prob.p, M[x])
-		loss_ind = [mse(diff_evalue[i]-du[i], 0) for i in 1:no_eqns]
-		
-		Loss_diff += sum(loss_ind)
-	end
-	return real(Loss_diff/length(M))
-end
-
-function train!(DQC::Vector{DQCType}, prob::AbstractODEProblem, M::AbstractVector, theta; optimizer=ADAM(0.075), steps=300)
+function train!(DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem, config::DQCConfig, M::AbstractVector, theta; optimizer=Adam(0.075), steps=300)
 	for _ in 1:steps
-		grads = gradient(_theta -> loss(DQC, prob, M, _theta), theta)[1]
-		for (p, g) in zip(theta, grads)
-  			update!(optimizer, p, g)
-		end
-		for i in 1:length(DQC)
-			dispatch!(DQC[i].var, theta[i])
+		if config.abh isa Optimized
+			function conf(fc, config::DQCConfig)
+				config.abh = Optimized(fc)
+				return config
+			end
+			fc = config.abh.fc
+			grads = gradient((_theta, _fc) -> loss(DQC, prob, conf(_fc, config), M, _theta), theta, fc)
+			if DQC isa DQCType
+				for (p,g) in zip([theta, [fc]], [grads[1], grads[2]])
+					update!(optimizer, p, g)
+				end
+				dispatch!(DQC.var, theta)
+			else
+				for (p,g) in zip([theta, [[fc]]], [grads[1], [grads[2]]])
+					for (x,y) in zip(p,g)
+						update!(optimizer, x, y)
+					end
+				end
+				for i in 1:length(DQC)
+					dispatch!(DQC[i].var, theta[i])
+				end
+			end
+			for i in 1:length(DQC)
+				dispatch!(DQC[i].var, theta[i])
+			end
+			config.abh = Optimized(fc)
+		else
+			grads = gradient(_theta -> loss(DQC, prob, config, M, _theta), theta)[1]
+			if DQC isa DQCType
+				update!(optimizer, theta, grads)
+				dispatch!(DQC.var, theta)
+			else
+				for (p, g) in zip(theta, grads)
+  					update!(optimizer, p, g)
+				end
+				for i in 1:length(DQC)
+					dispatch!(DQC[i].var, theta[i])
+				end
+			end
 		end
 	end
 end
 
-export loss, train!, DQCType
+function tr_custom!(DQC::Union{Vector{DQCType}, DQCType}, prob::AbstractODEProblem, config::DQCConfig, M::AbstractVector, theta; optimizer=Adam(0.075), steps=300)
+	for s in 1:steps
+		config.reg.reg_param = 1.0 - s/steps
+		grads = gradient(_theta -> loss(DQC, prob, config, M, _theta), theta)[1]
+		if DQC isa DQCType
+			update!(optimizer, theta, grads)
+			dispatch!(DQC.var, theta)
+		else
+			for (p, g) in zip(theta, grads)
+  				update!(optimizer, p, g)
+			end
+			for i in 1:length(DQC)
+				dispatch!(DQC[i].var, theta[i])
+			end
+		end
+	end
+end
+
+export loss, train!, DQCType, DQCConfig
 end
