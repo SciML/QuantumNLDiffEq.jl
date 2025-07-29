@@ -71,7 +71,7 @@ M = range(0; stop=0.9, length=20)
 	end
 	
 	@testset "Regularization Tests" begin
-		@testset "Singlular Encoding" begin
+		@testset "Singular Encoding" begin
 			DQC = QuantumNLDiffEq.DQCType(afm = QuantumNLDiffEq.ChebyshevSparse(2), fm = chain(6, [put(i=>Ry(0)) for i in 1:6]), cost = [[Add([put(6, i=>Z) for i in 1:6])]], var = dispatch(EasyBuild.variational_circuit(6,5), :random), N = 6)
 			config = DQCConfig(reg = QuantumNLDiffEq.RegularisationParams([[1.0, 0.04724630684751344, -0.7340180576454999, -0.10424985483835963, 0.5322086377394599]], [0.0, 0.18947368421052632, 0.37894736842105264, 0.5684210526315789, 0.7578947368421053], 0.0),  abh = QuantumNLDiffEq.Floating(), loss = loss_func)
 			evalue(M) = [QuantumNLDiffEq.calculate_evalue(QuantumNLDiffEqChebyshevSparse(2), DQC(mapping)[1].cost, prob.u0[1], config.abh, params[1], M[x], M[1]) for x in 1:length(M)]
