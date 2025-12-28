@@ -37,3 +37,4 @@ Plots.plot(new_M, reduce(vcat, real.(evalue(new_M))), xlabel="x", ylabel="f(x)",
 ```
 
 ![example1](https://user-images.githubusercontent.com/51269425/180599519-4e29b5c0-36e9-497b-b63c-db97d14a1050.png)
+
