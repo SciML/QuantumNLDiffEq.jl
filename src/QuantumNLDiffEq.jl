@@ -103,14 +103,21 @@ function train!(
         DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem, config::DQCConfig,
         M::AbstractVector, theta; optimizer = Optimisers.Adam(0.075), steps = 300)
     opt_state = Optimisers.setup(optimizer, theta)
+
+    # For Optimized boundary handling, initialize fc state once outside the loop
+    fc = nothing
+    fc_state = nothing
+    if config.abh isa Optimized
+        fc = [config.abh.fc]  # Wrap in array for Optimisers
+        fc_state = Optimisers.setup(optimizer, fc)
+    end
+
     for _ in 1:steps
         if config.abh isa Optimized
-            function conf(fc, config::DQCConfig)
-                config.abh = Optimized(fc)
+            function conf(fc_val, config::DQCConfig)
+                config.abh = Optimized(fc_val)
                 return config
             end
-            fc = [config.abh.fc]  # Wrap in array for Optimisers
-            fc_state = Optimisers.setup(optimizer, fc)
             grads = gradient(
                 (
                     _theta, _fc) -> loss(DQC, prob, conf(_fc[1], config), M, _theta), theta, fc)
