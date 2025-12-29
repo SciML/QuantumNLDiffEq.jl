@@ -2,7 +2,7 @@ module QuantumNLDiffEq
 
 import Yao: AbstractBlock, zero_state, expect, dispatch!, dispatch, chain, Add, Scale,
             TimeEvolution, IdentityGate, igate
-import Flux: update!, Adam
+import Optimisers
 import Zygote: gradient
 import SciMLBase: AbstractODEProblem, AbstractSciMLOperator, ODEFunction
 import ForwardDiff: jacobian
@@ -75,45 +75,64 @@ include("calculate_diff_evalue.jl")
 include("calculate_evalue.jl")
 include("loss.jl")
 
+# Helper to apply gradient updates in-place for our parameter types
+function apply_update!(opt_state, theta::Vector{Float64}, grads)
+    if grads !== nothing
+        new_state, new_theta = Optimisers.update(opt_state, theta, grads)
+        theta .= new_theta
+        return new_state
+    end
+    return opt_state
+end
+
+function apply_update!(opt_state, theta::Vector{Vector{Float64}}, grads)
+    if grads !== nothing
+        for i in eachindex(theta)
+            if grads[i] !== nothing
+                new_state_i,
+                new_theta_i = Optimisers.update(opt_state[i], theta[i], grads[i])
+                theta[i] .= new_theta_i
+                opt_state[i] = new_state_i
+            end
+        end
+    end
+    return opt_state
+end
+
 function train!(
         DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem, config::DQCConfig,
-        M::AbstractVector, theta; optimizer = Adam(0.075), steps = 300)
+        M::AbstractVector, theta; optimizer = Optimisers.Adam(0.075), steps = 300)
+    opt_state = Optimisers.setup(optimizer, theta)
     for _ in 1:steps
         if config.abh isa Optimized
             function conf(fc, config::DQCConfig)
                 config.abh = Optimized(fc)
                 return config
             end
-            fc = config.abh.fc
-            grads = gradient((_theta, _fc) -> loss(DQC, prob, conf(_fc, config), M, _theta), theta, fc)
+            fc = [config.abh.fc]  # Wrap in array for Optimisers
+            fc_state = Optimisers.setup(optimizer, fc)
+            grads = gradient(
+                (
+                    _theta, _fc) -> loss(DQC, prob, conf(_fc[1], config), M, _theta), theta, fc)
+            opt_state = apply_update!(opt_state, theta, grads[1])
+            if grads[2] !== nothing
+                fc_state, new_fc = Optimisers.update(fc_state, fc, grads[2])
+                fc[1] = new_fc[1]
+            end
             if DQC isa DQCType
-                for (p, g) in zip([theta, [fc]], [grads[1], [grads[2]]])
-                    update!(optimizer, p, g)
-                end
                 dispatch!(DQC.var, theta)
             else
-                for (p, g) in zip([theta, [[fc]]], [grads[1], [[grads[2]]]])
-                    for (x, y) in zip(p, g)
-                        update!(optimizer, x, y)
-                    end
-                end
                 for i in 1:length(DQC)
                     dispatch!(DQC[i].var, theta[i])
                 end
             end
-            for i in 1:length(DQC)
-                dispatch!(DQC[i].var, theta[i])
-            end
-            config.abh = Optimized(fc)
+            config.abh = Optimized(fc[1])
         else
             grads = gradient(_theta -> loss(DQC, prob, config, M, _theta), theta)[1]
+            opt_state = apply_update!(opt_state, theta, grads)
             if DQC isa DQCType
-                update!(optimizer, theta, grads)
                 dispatch!(DQC.var, theta)
             else
-                for (p, g) in zip(theta, grads)
-                    update!(optimizer, p, g)
-                end
                 for i in 1:length(DQC)
                     dispatch!(DQC[i].var, theta[i])
                 end
@@ -124,17 +143,15 @@ end
 
 function tr_custom!(
         DQC::Union{Vector{DQCType}, DQCType}, prob::AbstractODEProblem, config::DQCConfig,
-        M::AbstractVector, theta; optimizer = Adam(0.075), steps = 300)
+        M::AbstractVector, theta; optimizer = Optimisers.Adam(0.075), steps = 300)
+    opt_state = Optimisers.setup(optimizer, theta)
     for s in 1:steps
         config.reg.reg_param = 1.0 - s/steps
         grads = gradient(_theta -> loss(DQC, prob, config, M, _theta), theta)[1]
+        opt_state = apply_update!(opt_state, theta, grads)
         if DQC isa DQCType
-            update!(optimizer, theta, grads)
             dispatch!(DQC.var, theta)
         else
-            for (p, g) in zip(theta, grads)
-                update!(optimizer, p, g)
-            end
             for i in 1:length(DQC)
                 dispatch!(DQC[i].var, theta[i])
             end

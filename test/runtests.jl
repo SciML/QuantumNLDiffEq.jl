@@ -4,7 +4,7 @@ using Yao: dispatch, EasyBuild, put, Z, chain, Ry, parameters, zero_state, expec
            parameters, Add
 using Zygote: gradient
 using DifferentialEquations
-using Flux: Adam
+using Optimisers: Adam
 
 M = range(0; stop = 0.9, length = 20)
 @testset "Tests for damped oscillation equations" begin
