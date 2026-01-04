@@ -1,7 +1,7 @@
 module QuantumNLDiffEq
 
 import Yao: AbstractBlock, zero_state, expect, dispatch!, dispatch, chain, Add, Scale,
-            TimeEvolution, IdentityGate, igate
+    TimeEvolution, IdentityGate, igate
 import Optimisers
 import Zygote: gradient
 import SciMLBase: AbstractODEProblem, AbstractSciMLOperator, ODEFunction
@@ -15,9 +15,9 @@ end
 function rrule(::typeof(ODEEncode), u, p, t, ode::ODEFunction)
     y = ODEEncode(u, p, t, ode)
     function func_pullback(ȳ)
-        Ju = jacobian((u)->ODEEncode(u, p, t, ode), u)
-        Jp = jacobian((p)->ODEEncode(u, p, t, ode), p)
-        NoTangent(), Ju'*ȳ, Jp'*ȳ, NoTangent(), NoTangent()
+        Ju = jacobian((u) -> ODEEncode(u, p, t, ode), u)
+        Jp = jacobian((p) -> ODEEncode(u, p, t, ode), p)
+        return NoTangent(), Ju' * ȳ, Jp' * ȳ, NoTangent(), NoTangent()
     end
     return y, func_pullback
 end
@@ -90,7 +90,7 @@ function apply_update!(opt_state, theta::Vector{Vector{Float64}}, grads)
         for i in eachindex(theta)
             if grads[i] !== nothing
                 new_state_i,
-                new_theta_i = Optimisers.update(opt_state[i], theta[i], grads[i])
+                    new_theta_i = Optimisers.update(opt_state[i], theta[i], grads[i])
                 theta[i] .= new_theta_i
                 opt_state[i] = new_state_i
             end
@@ -101,7 +101,8 @@ end
 
 function train!(
         DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem, config::DQCConfig,
-        M::AbstractVector, theta; optimizer = Optimisers.Adam(0.075), steps = 300)
+        M::AbstractVector, theta; optimizer = Optimisers.Adam(0.075), steps = 300
+    )
     opt_state = Optimisers.setup(optimizer, theta)
 
     # For Optimized boundary handling, initialize fc state once outside the loop
@@ -120,7 +121,9 @@ function train!(
             end
             grads = gradient(
                 (
-                    _theta, _fc) -> loss(DQC, prob, conf(_fc[1], config), M, _theta), theta, fc)
+                    _theta, _fc,
+                ) -> loss(DQC, prob, conf(_fc[1], config), M, _theta), theta, fc
+            )
             opt_state = apply_update!(opt_state, theta, grads[1])
             if grads[2] !== nothing
                 fc_state, new_fc = Optimisers.update(fc_state, fc, grads[2])
@@ -146,14 +149,16 @@ function train!(
             end
         end
     end
+    return
 end
 
 function tr_custom!(
         DQC::Union{Vector{DQCType}, DQCType}, prob::AbstractODEProblem, config::DQCConfig,
-        M::AbstractVector, theta; optimizer = Optimisers.Adam(0.075), steps = 300)
+        M::AbstractVector, theta; optimizer = Optimisers.Adam(0.075), steps = 300
+    )
     opt_state = Optimisers.setup(optimizer, theta)
     for s in 1:steps
-        config.reg.reg_param = 1.0 - s/steps
+        config.reg.reg_param = 1.0 - s / steps
         grads = gradient(_theta -> loss(DQC, prob, config, M, _theta), theta)[1]
         opt_state = apply_update!(opt_state, theta, grads)
         if DQC isa DQCType
@@ -164,6 +169,7 @@ function tr_custom!(
             end
         end
     end
+    return
 end
 
 export loss, train!, DQCType, DQCConfig
