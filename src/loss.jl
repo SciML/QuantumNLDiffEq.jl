@@ -163,10 +163,28 @@ function loss_bound(
     return real(loss_ind)
 end
 
-function loss(
-        DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem,
-        config::DQCConfig, M::AbstractVector, theta
-    )
+"""
+    loss(DQC, prob, config, M, theta)
+
+Calculate the total loss for training a DQC to solve an ODE problem.
+
+The total loss is composed of three components:
+- Differential loss: How well the circuit's derivative matches the ODE
+- Regularization loss: Penalty term for deviation from known solution points (if configured)
+- Boundary loss: Penalty for boundary condition violations (for Pinned boundary handling)
+
+# Arguments
+- `DQC::Union{DQCType, Vector{DQCType}}`: Single DQC or vector of DQCs
+- `prob::AbstractODEProblem`: ODE problem
+- `config::DQCConfig`: Configuration including loss function and boundary handling
+- `M::AbstractVector`: Mesh points for evaluation
+- `theta`: Current parameters of the variational circuit(s)
+
+# Returns
+- `Real`: Total loss value
+"""
+function loss(DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem,
+        config::DQCConfig, M::AbstractVector, theta)
     return loss_diff(DQC, prob, M, config.cost_params, config.abh, config.loss, theta) +
         loss_reg(
         DQC, prob.u0, config.reg, config.cost_params,
