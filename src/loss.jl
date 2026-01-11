@@ -183,8 +183,10 @@ The total loss is composed of three components:
 # Returns
 - `Real`: Total loss value
 """
-function loss(DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem,
-        config::DQCConfig, M::AbstractVector, theta)
+function loss(
+        DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem,
+        config::DQCConfig, M::AbstractVector, theta
+    )
     return loss_diff(DQC, prob, M, config.cost_params, config.abh, config.loss, theta) +
         loss_reg(
         DQC, prob.u0, config.reg, config.cost_params,

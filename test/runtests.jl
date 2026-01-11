@@ -129,11 +129,16 @@ M = range(0; stop = 0.9, length = 20)
                     0.0
                 ),
                 abh = QuantumNLDiffEq.Floating(),
-                loss = loss_func)
-            evalue(M) = [QuantumNLDiffEq.calculate_evalue(
-                             DQC, DQC.cost,
-                             prob.u0[1], config.abh, params, M[x], M[1])
-                         for x in 1:length(M)]
+                loss = loss_func
+            )
+            params = parameters(DQC.var)
+            evalue(M) = [
+                QuantumNLDiffEq.calculate_evalue(
+                        DQC, DQC.cost,
+                        prob.u0[1], config.abh, params, M[x], M[1]
+                    )
+                    for x in 1:length(M)
+            ]
             QuantumNLDiffEq.tr_custom!(DQC, prob, config, M, params)
             @show loss = QuantumNLDiffEq.loss(DQC, prob, config, M, params)
             @test loss < 0.5
@@ -163,11 +168,15 @@ M = range(0; stop = 0.9, length = 20)
                     0.0
                 ),
                 abh = QuantumNLDiffEq.Floating(),
-                loss = loss_func)
-            evalue(M) = [QuantumNLDiffEq.calculate_evalue(
-                             DQC, DQC.cost,
-                             prob.u0[1], config.abh, params, M[x], M[1])
-                         for x in 1:length(M)]
+                loss = loss_func
+            )
+            evalue(M) = [
+                QuantumNLDiffEq.calculate_evalue(
+                        DQC, DQC.cost,
+                        prob.u0[1], config.abh, params, M[x], M[1]
+                    )
+                    for x in 1:length(M)
+            ]
             params = [parameters(DQC[1].var)]
             QuantumNLDiffEq.tr_custom!(DQC, prob, config, M, params)
             loss = QuantumNLDiffEq.loss(DQC, prob, config, M, params)
