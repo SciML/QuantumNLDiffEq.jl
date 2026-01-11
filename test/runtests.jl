@@ -131,14 +131,14 @@ M = range(0; stop = 0.9, length = 20)
                 abh = QuantumNLDiffEq.Floating(),
                 loss = loss_func
             )
+            params = parameters(DQC.var)
             evalue(M) = [
                 QuantumNLDiffEq.calculate_evalue(
-                        QuantumNLDiffEqChebyshevSparse(2), DQC(mapping)[1].cost,
-                        prob.u0[1], config.abh, params[1], M[x], M[1]
+                        DQC, DQC.cost,
+                        prob.u0[1], config.abh, params, M[x], M[1]
                     )
                     for x in 1:length(M)
             ]
-            params = parameters(DQC.var)
             QuantumNLDiffEq.tr_custom!(DQC, prob, config, M, params)
             @show loss = QuantumNLDiffEq.loss(DQC, prob, config, M, params)
             @test loss < 0.5
@@ -172,8 +172,8 @@ M = range(0; stop = 0.9, length = 20)
             )
             evalue(M) = [
                 QuantumNLDiffEq.calculate_evalue(
-                        QuantumNLDiffEqChebyshevSparse(2), DQC(mapping)[1].cost,
-                        prob.u0[1], config.abh, params[1], M[x], M[1]
+                        DQC, DQC.cost,
+                        prob.u0[1], config.abh, params, M[x], M[1]
                     )
                     for x in 1:length(M)
             ]
