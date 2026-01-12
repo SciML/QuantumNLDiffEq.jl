@@ -18,26 +18,17 @@ M = range(0; stop = 0.9, length = 20)
     end
 
     @testset "Boundary Handling Tests" begin
-        DQC = [
-            QuantumNLDiffEq.DQCType(
-                afm = QuantumNLDiffEq.ChebyshevSparse(2),
-                fm = chain(6, [put(i => Ry(0)) for i in 1:6]),
-                cost = [Add([put(6, i => Z) for i in 1:6])],
-                var = dispatch(EasyBuild.variational_circuit(6, 5), :random), N = 6
-            ),
-        ]
         config(boundary) = DQCConfig(abh = boundary, loss = loss_func)
-        evalue(
-            M,
-            conf
-        ) = [
-            QuantumNLDiffEq.calculate_evalue(
-                    DQC[1], DQC[1].cost, prob.u0[1], conf.abh, params[1], M[x], M[1]
-                )
-                for x in 1:length(M)
-        ]
 
         @testset "Test for Pinned Boundary Handling" begin
+            DQC = [
+                QuantumNLDiffEq.DQCType(
+                    afm = QuantumNLDiffEq.ChebyshevSparse(2),
+                    fm = chain(6, [put(i => Ry(0)) for i in 1:6]),
+                    cost = [Add([put(6, i => Z) for i in 1:6])],
+                    var = dispatch(EasyBuild.variational_circuit(6, 5), :random), N = 6
+                ),
+            ]
             conf = config(QuantumNLDiffEq.Pinned(2.5))
             params = [parameters(DQC[1].var)]
             QuantumNLDiffEq.train!(DQC, prob, conf, M, params)
@@ -45,6 +36,14 @@ M = range(0; stop = 0.9, length = 20)
         end
 
         @testset "Test for Floating Boundary Handling" begin
+            DQC = [
+                QuantumNLDiffEq.DQCType(
+                    afm = QuantumNLDiffEq.ChebyshevSparse(2),
+                    fm = chain(6, [put(i => Ry(0)) for i in 1:6]),
+                    cost = [Add([put(6, i => Z) for i in 1:6])],
+                    var = dispatch(EasyBuild.variational_circuit(6, 5), :random), N = 6
+                ),
+            ]
             conf = config(QuantumNLDiffEq.Floating())
             params = [parameters(DQC[1].var)]
             QuantumNLDiffEq.train!(DQC, prob, conf, M, params)
@@ -52,6 +51,14 @@ M = range(0; stop = 0.9, length = 20)
         end
 
         @testset "Test for Optimised Boundary Handling" begin
+            DQC = [
+                QuantumNLDiffEq.DQCType(
+                    afm = QuantumNLDiffEq.ChebyshevSparse(2),
+                    fm = chain(6, [put(i => Ry(0)) for i in 1:6]),
+                    cost = [Add([put(6, i => Z) for i in 1:6])],
+                    var = dispatch(EasyBuild.variational_circuit(6, 5), :random), N = 6
+                ),
+            ]
             conf = config(QuantumNLDiffEq.Optimized(rand()))
             params = [parameters(DQC[1].var)]
             QuantumNLDiffEq.train!(DQC, prob, conf, M, params)
@@ -68,16 +75,6 @@ M = range(0; stop = 0.9, length = 20)
             ),
         ]
         config = DQCConfig(abh = QuantumNLDiffEq.Floating(), loss = loss_func)
-        evalue(
-            M,
-            mapping
-        ) = [
-            QuantumNLDiffEq.calculate_evalue(
-                    DQC(mapping), DQC(mapping)[1].cost,
-                    prob.u0[1], conf.abh, params[1], M[x], M[1]
-                )
-                for x in 1:length(M)
-        ]
 
         @testset "Test for Product Feature Mapping" begin
             input = DQ(QuantumNLDiffEq.Product())
@@ -132,13 +129,6 @@ M = range(0; stop = 0.9, length = 20)
                 loss = loss_func
             )
             params = parameters(DQC.var)
-            evalue(M) = [
-                QuantumNLDiffEq.calculate_evalue(
-                        DQC, DQC.cost,
-                        prob.u0[1], config.abh, params, M[x], M[1]
-                    )
-                    for x in 1:length(M)
-            ]
             QuantumNLDiffEq.tr_custom!(DQC, prob, config, M, params)
             @show loss = QuantumNLDiffEq.loss(DQC, prob, config, M, params)
             @test loss < 0.5
@@ -170,13 +160,6 @@ M = range(0; stop = 0.9, length = 20)
                 abh = QuantumNLDiffEq.Floating(),
                 loss = loss_func
             )
-            evalue(M) = [
-                QuantumNLDiffEq.calculate_evalue(
-                        DQC, DQC.cost,
-                        prob.u0[1], config.abh, params, M[x], M[1]
-                    )
-                    for x in 1:length(M)
-            ]
             params = [parameters(DQC[1].var)]
             QuantumNLDiffEq.tr_custom!(DQC, prob, config, M, params)
             loss = QuantumNLDiffEq.loss(DQC, prob, config, M, params)
