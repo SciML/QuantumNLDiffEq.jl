@@ -5,6 +5,12 @@ using Yao: dispatch, EasyBuild, put, Z, chain, Ry, parameters, zero_state, expec
 using Zygote: gradient
 using DifferentialEquations
 using Optimisers: Adam
+using Random
+
+# Seed the global RNG so the variational-circuit `:random` initialization is
+# reproducible across Julia versions. Without this, the loss-threshold tests
+# below are flaky because Julia's default RNG stream changes between releases.
+Random.seed!(0)
 
 M = range(0; stop = 0.9, length = 20)
 @testset "Tests for damped oscillation equations" begin
@@ -21,6 +27,7 @@ M = range(0; stop = 0.9, length = 20)
         config(boundary) = DQCConfig(abh = boundary, loss = loss_func)
 
         @testset "Test for Pinned Boundary Handling" begin
+            Random.seed!(0)
             DQC = [
                 QuantumNLDiffEq.DQCType(
                     afm = QuantumNLDiffEq.ChebyshevSparse(2),
@@ -36,6 +43,7 @@ M = range(0; stop = 0.9, length = 20)
         end
 
         @testset "Test for Floating Boundary Handling" begin
+            Random.seed!(0)
             DQC = [
                 QuantumNLDiffEq.DQCType(
                     afm = QuantumNLDiffEq.ChebyshevSparse(2),
@@ -51,6 +59,7 @@ M = range(0; stop = 0.9, length = 20)
         end
 
         @testset "Test for Optimised Boundary Handling" begin
+            Random.seed!(0)
             DQC = [
                 QuantumNLDiffEq.DQCType(
                     afm = QuantumNLDiffEq.ChebyshevSparse(2),
