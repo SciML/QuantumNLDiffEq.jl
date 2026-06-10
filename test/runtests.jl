@@ -1,5 +1,16 @@
-using QuantumNLDiffEq
 using Test
+
+const GROUP = get(ENV, "GROUP", "All")
+
+if GROUP == "QA"
+    import Pkg
+    Pkg.activate(joinpath(@__DIR__, "qa"))
+    Pkg.instantiate()
+    include(joinpath(@__DIR__, "qa", "qa.jl"))
+    exit()
+end
+
+using QuantumNLDiffEq
 using Yao: dispatch, EasyBuild, put, Z, chain, Ry, parameters, zero_state, expect,
     parameters, nparameters, Add
 using Zygote: gradient
