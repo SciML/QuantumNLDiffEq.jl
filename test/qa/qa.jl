@@ -1,9 +1,9 @@
-using QuantumNLDiffEq
-using Aqua
-using JET
-using Test
+using SafeTestsets
 
-@testset "Aqua" begin
+@safetestset "Aqua" begin
+    using QuantumNLDiffEq
+    using Aqua
+    using Test
     # deps_compat is split out below so the genuine `extras` finding can be
     # marked broken without skipping the other deps_compat sub-checks.
     Aqua.test_all(QuantumNLDiffEq; deps_compat = false)
@@ -16,7 +16,10 @@ using Test
     @test_broken false
 end
 
-@testset "JET" begin
+@safetestset "JET" begin
+    using QuantumNLDiffEq
+    using JET
+    using Test
     # JET: 7 possible errors (Scale calls in calc_cost don't match a YaoBlocks.Scale
     # method; fc indexing in train! hits the Nothing branch of Union{Nothing,Vector})
     # see https://github.com/SciML/QuantumNLDiffEq.jl/issues/61
