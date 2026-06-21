@@ -1,5 +1,10 @@
 [Core]
 versions = ["lts", "1", "pre"]
+# The Core suite trains 6-qubit variational circuits for hundreds of Adam steps
+# with parameter-shift gradients; historically (pre-grouped-tests) the whole suite
+# took ~1h (lts) to ~3.4h (julia 1/pre) and ran under GitHub's 6h default. The
+# grouped-tests default of 120 min cancels it mid-run, so pin the job timeout to 6h.
+timeout = 360
 
 [QA]
 versions = ["lts", "1"]
