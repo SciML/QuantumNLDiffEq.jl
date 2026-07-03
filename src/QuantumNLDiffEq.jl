@@ -4,7 +4,7 @@ import Yao: AbstractBlock, zero_state, expect, dispatch!, dispatch, chain, Add, 
     TimeEvolution, IdentityGate, igate
 import Optimisers
 import Zygote: gradient
-import SciMLBase: AbstractODEProblem, AbstractSciMLOperator, ODEFunction
+import SciMLBase: AbstractODEProblem, ODEFunction
 import ForwardDiff: jacobian
 import ChainRulesCore: rrule, NoTangent
 
