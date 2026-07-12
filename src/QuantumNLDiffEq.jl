@@ -130,7 +130,7 @@ Train a Differential Quantum Circuit (DQC) to solve an ODE problem.
 
 # Arguments
 - `DQC::Union{DQCType, Vector{DQCType}}`: Single DQC or vector of DQCs for multi-equation systems
-- `prob::AbstractODEProblem`: ODE problem from DifferentialEquations.jl
+- `prob::AbstractODEProblem`: SciMLBase-compatible ODE problem
 - `config::DQCConfig`: Configuration for training (boundary handling, loss function, etc.)
 - `M::AbstractVector`: Mesh points for training
 - `theta`: Initial parameters for the variational circuit(s)
@@ -141,7 +141,7 @@ Train a Differential Quantum Circuit (DQC) to solve an ODE problem.
 
 # Example
 ```julia
-using DifferentialEquations, Yao, QuantumNLDiffEq
+using SciMLBase, Yao, QuantumNLDiffEq
 
 prob = ODEProblem((u,p,t) -> -1*p[1]*u*(p[2] + tan(p[1]*t)), [1.0], (0.0, 0.9), [8.0, 0.1])
 DQC = [QuantumNLDiffEq.DQCType(

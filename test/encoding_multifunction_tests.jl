@@ -2,7 +2,7 @@ using QuantumNLDiffEq
 using Yao: dispatch, EasyBuild, put, Z, chain, Ry, parameters, zero_state, expect,
     parameters, nparameters, Add
 using Zygote: gradient
-using DifferentialEquations
+using SciMLBase
 using Optimisers: Adam
 using Random
 using Test

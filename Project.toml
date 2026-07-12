@@ -12,25 +12,23 @@ Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
-ChainRulesCore = "1.15"
-DifferentialEquations = "7"
+ChainRulesCore = "1.20"
 ForwardDiff = "0.10, 1.4"
-Optimisers = "0.2, 0.3, 0.4"
+Optimisers = "0.3, 0.4"
 Random = "1"
 SafeTestsets = "0.1, 1"
 SciMLBase = "1, 2, 3.1"
-SciMLTesting = "1"
+SciMLTesting = "2.1"
 Test = "1"
 Yao = "0.9.2"
-Zygote = "0.6, 0.7, 0.8"
+Zygote = "0.7.11, 0.8"
 julia = "1.10"
 
 [extras]
-DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 SciMLTesting = "09d9d899-5365-40a9-917a-5f67fddea283"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["SafeTestsets", "SciMLTesting", "Test", "DifferentialEquations", "Random"]
+test = ["SafeTestsets", "SciMLTesting", "Test", "Random"]
