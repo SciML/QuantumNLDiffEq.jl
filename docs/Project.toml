@@ -1,0 +1,8 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+QuantumNLDiffEq = "5411918f-e61c-4722-a33e-8517a813f4bd"
+
+[compat]
+Documenter = "1"
+QuantumNLDiffEq = "1"
+julia = "1.10"

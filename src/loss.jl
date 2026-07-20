@@ -166,22 +166,30 @@ end
 """
     loss(DQC, prob, config, M, theta)
 
-Calculate the total loss for training a DQC to solve an ODE problem.
+Evaluate the training objective for one or more Differential Quantum Circuits.
 
-The total loss is composed of three components:
-- Differential loss: How well the circuit's derivative matches the ODE
-- Regularization loss: Penalty term for deviation from known solution points (if configured)
-- Boundary loss: Penalty for boundary condition violations (for Pinned boundary handling)
+The total objective combines the differential-equation residual, the optional
+regularization penalty configured by `config.reg`, and the boundary penalty
+configured by `config.abh`.
 
 # Arguments
-- `DQC::Union{DQCType, Vector{DQCType}}`: Single DQC or vector of DQCs
-- `prob::AbstractODEProblem`: ODE problem
-- `config::DQCConfig`: Configuration including loss function and boundary handling
-- `M::AbstractVector`: Mesh points for evaluation
-- `theta`: Current parameters of the variational circuit(s)
+
+- `DQC`: A [`DQCType`](@ref), or a vector of `DQCType`s for systems.
+- `prob`: SciMLBase-compatible ODE problem.
+- `config`: [`DQCConfig`](@ref) containing the scalar penalty function and
+  boundary/regularization settings.
+- `M`: Mesh points where the objective is evaluated.
+- `theta`: Current variational-circuit parameters.
 
 # Returns
-- `Real`: Total loss value
+
+Returns the real-valued objective used by [`train!`](@ref).
+
+# Examples
+
+```julia
+objective = loss(DQC, prob, config, M, theta)
+```
 """
 function loss(
         DQC::Union{DQCType, Vector{DQCType}}, prob::AbstractODEProblem,

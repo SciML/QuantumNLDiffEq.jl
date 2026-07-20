@@ -54,17 +54,39 @@ struct CostParams <: AbstractCostParams
 end
 
 """
-    DQCType
+    DQCType(; afm, fm, cost, var, N, evol = igate(N))
 
-Differential Quantum Circuit type that encodes the structure of a quantum circuit for solving differential equations.
+Describe a Differential Quantum Circuit (DQC) used by [`loss`](@ref) and
+[`train!`](@ref).
+
+Use one `DQCType` for a scalar differential equation, or a vector of
+`DQCType`s for a system where each state component is represented by its own
+circuit.
 
 # Fields
-- `afm::AbstractFeatureMap`: Ansatz feature mapping (e.g., `ChebyshevSparse`, `ChebyshevTower`, `Product`)
-- `fm::AbstractBlock`: Feature map quantum circuit
-- `cost::Union{Vector{<:AbstractBlock}, Vector{<:Vector{<:AbstractBlock}}}`: Cost function observables
-- `var::AbstractBlock`: Variational quantum circuit
-- `N::Int64`: Number of qubits
-- `evol::Union{TimeEvolution, IdentityGate}`: Time evolution operator (default: identity gate)
+
+- `afm`: Ansatz feature map, such as `QuantumNLDiffEq.ChebyshevSparse`.
+- `fm`: Feature-map quantum circuit.
+- `cost`: Cost observable or observables. For a single circuit encoding
+  multiple equations, pass a vector of observable vectors.
+- `var`: Variational quantum circuit.
+- `N`: Number of qubits.
+- `evol`: Optional time-evolution block. Defaults to the identity gate on `N`
+  qubits.
+
+# Examples
+
+```julia
+using QuantumNLDiffEq, Yao
+
+DQC = DQCType(
+    afm = QuantumNLDiffEq.ChebyshevSparse(2),
+    fm = chain(6, [put(i => Ry(0)) for i in 1:6]),
+    cost = [Add([put(6, i => Z) for i in 1:6])],
+    var = dispatch(EasyBuild.variational_circuit(6, 5), :random),
+    N = 6,
+)
+```
 """
 Base.@kwdef mutable struct DQCType
     afm::AbstractFeatureMap
@@ -76,15 +98,33 @@ Base.@kwdef mutable struct DQCType
 end
 
 """
-    DQCConfig
+    DQCConfig(; reg = NoRegularisation(), cost_params = NoCostParams(), abh, loss)
 
-Configuration for Differential Quantum Circuit training and evaluation.
+Configure the loss terms and boundary handling used by [`loss`](@ref) and
+[`train!`](@ref).
+
+`DQCConfig` keeps the training objective separate from the circuit definition
+in [`DQCType`](@ref). The `loss` field should be a scalar penalty function that
+compares a predicted value with a target value.
 
 # Fields
-- `reg::AbstractRegularisationParams`: Regularization parameters (default: `NoRegularisation()`)
-- `cost_params::AbstractCostParams`: Cost function parameters (default: `NoCostParams()`)
-- `abh::AbstractBoundaryHandling`: Boundary handling method (`Floating`, `Pinned`, or `Optimized`)
-- `loss::Function`: Loss function for training
+
+- `reg`: Regularization data for matching known solution values. Defaults to no
+  regularization.
+- `cost_params`: Weights for cost observables. Defaults to unweighted costs.
+- `abh`: Boundary handling strategy, such as `QuantumNLDiffEq.Floating()`.
+- `loss`: Function called as `loss(predicted, target)` for each penalty term.
+
+# Examples
+
+```julia
+using QuantumNLDiffEq
+
+config = DQCConfig(
+    abh = QuantumNLDiffEq.Floating(),
+    loss = (predicted, target) -> abs2(predicted - target),
+)
+```
 """
 Base.@kwdef mutable struct DQCConfig
     reg::AbstractRegularisationParams = NoRegularisation()
@@ -124,35 +164,47 @@ function apply_update!(opt_state, theta::Vector{Vector{Float64}}, grads)
 end
 
 """
-    train!(DQC, prob, config, M, theta; optimizer=Adam(0.075), steps=300)
+    train!(DQC, prob, config, M, theta; optimizer = Optimisers.Adam(0.075), steps = 300)
 
-Train a Differential Quantum Circuit (DQC) to solve an ODE problem.
+Train one or more Differential Quantum Circuits against an ODE problem.
+
+`train!` minimizes [`loss`](@ref) over the mesh points `M`, updates `theta` in
+place, and dispatches the updated parameters back into the variational circuit.
+It returns `nothing`.
 
 # Arguments
-- `DQC::Union{DQCType, Vector{DQCType}}`: Single DQC or vector of DQCs for multi-equation systems
-- `prob::AbstractODEProblem`: SciMLBase-compatible ODE problem
-- `config::DQCConfig`: Configuration for training (boundary handling, loss function, etc.)
-- `M::AbstractVector`: Mesh points for training
-- `theta`: Initial parameters for the variational circuit(s)
+
+- `DQC`: A [`DQCType`](@ref), or a vector of `DQCType`s for multi-equation
+  systems.
+- `prob`: SciMLBase-compatible ODE problem.
+- `config`: Training configuration, including boundary handling and the scalar
+  penalty function.
+- `M`: Mesh points used to evaluate the training objective.
+- `theta`: Parameters for the variational circuit or circuits. The shape should
+  match `DQC`: one parameter vector for a single circuit, or one vector per
+  circuit.
 
 # Keyword Arguments
-- `optimizer=Adam(0.075)`: Flux optimizer for gradient descent
-- `steps=300`: Number of training iterations
 
-# Example
+- `optimizer`: Optimisers.jl optimizer used for gradient updates.
+- `steps`: Number of training iterations.
+
+# Examples
+
 ```julia
 using SciMLBase, Yao, QuantumNLDiffEq
 
-prob = ODEProblem((u,p,t) -> -1*p[1]*u*(p[2] + tan(p[1]*t)), [1.0], (0.0, 0.9), [8.0, 0.1])
+prob = ODEProblem((u, p, t) -> -p[1] * u * (p[2] + tan(p[1] * t)),
+    [1.0], (0.0, 0.9), [8.0, 0.1])
 DQC = [QuantumNLDiffEq.DQCType(
     afm = QuantumNLDiffEq.ChebyshevSparse(2),
-    fm = chain(6, [put(i=>Ry(0)) for i in 1:6]),
-    cost = [Add([put(6, i=>Z) for i in 1:6])],
-    var = dispatch(EasyBuild.variational_circuit(6,5), :random),
-    N = 6
+    fm = chain(6, [put(i => Ry(0)) for i in 1:6]),
+    cost = [Add([put(6, i => Z) for i in 1:6])],
+    var = dispatch(EasyBuild.variational_circuit(6, 5), :random),
+    N = 6,
 )]
-config = DQCConfig(abh = QuantumNLDiffEq.Floating(), loss = (a,b) -> (a-b)^2)
-M = range(0, stop=0.9, length=20)
+config = DQCConfig(abh = QuantumNLDiffEq.Floating(), loss = (a, b) -> abs2(a - b))
+M = range(0, stop = 0.9, length = 20)
 params = [Yao.parameters(DQC[1].var)]
 
 QuantumNLDiffEq.train!(DQC, prob, config, M, params)

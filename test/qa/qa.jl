@@ -3,6 +3,7 @@ using JET
 
 run_qa(
     QuantumNLDiffEq;
+    api_docs_kwargs = (; rendered = true),
     explicit_imports = true,
     ei_kwargs = (;
         # ForwardDiff.jacobian is not declared public in ForwardDiff yet. Drop this once
