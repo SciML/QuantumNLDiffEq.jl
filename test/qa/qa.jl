@@ -1,13 +1,3 @@
-using SciMLTesting, QuantumNLDiffEq, Test
-using JET
+using SciMLTesting, QuantumNLDiffEq
 
-run_qa(
-    QuantumNLDiffEq;
-    api_docs_kwargs = (; rendered = true),
-    explicit_imports = true,
-    ei_kwargs = (;
-        # ForwardDiff.jacobian is not declared public in ForwardDiff yet. Drop this once
-        # ForwardDiff marks it public.
-        all_explicit_imports_are_public = (; ignore = (:jacobian,)),
-    ),
-)
+run_qa(QuantumNLDiffEq)
