@@ -9,9 +9,10 @@ makedocs(;
     sitename = "QuantumNLDiffEq.jl",
     pages = [
         "Home" => "index.md",
+        "Developer API" => "developer_api.md",
     ],
     clean = true,
-    doctest = false,
+    doctest = true,
     checkdocs = :exports,
 )
 

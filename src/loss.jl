@@ -131,6 +131,32 @@ function loss_reg(
     return real(Loss_reg)
 end
 
+"""
+    loss_bound(DQC, M, u0, cost_params, boundary, loss, theta)
+
+Return the boundary-condition contribution to the Differential Quantum Circuit
+training objective.
+
+# Arguments
+
+- `DQC`: One circuit or a vector of circuits.
+- `M`: First mesh point of the training interval.
+- `u0`: Initial state values.
+- `cost_params`: Cost-observable weights from [`DQCConfig`](@ref).
+- `boundary`: Boundary-handling strategy.
+- `loss`: Scalar penalty callable accepting a prediction and target.
+- `theta`: Current variational-circuit parameters.
+
+# Returns
+
+Returns a nonnegative real-valued boundary penalty.
+
+# Rules
+
+Extensions may define methods only for an [`AbstractBoundaryHandling`](@ref)
+subtype they own. Methods must not mutate their inputs and must return zero for
+strategies that intentionally impose no boundary penalty.
+"""
 function loss_bound(
         ::Union{DQCType, Vector{DQCType}}, ::Real, ::Vector{Float64},
         ::AbstractCostParams, ::Union{Floating, Optimized}, ::Function, ::Any

@@ -1,24 +1,24 @@
 name = "QuantumNLDiffEq"
 uuid = "5411918f-e61c-4722-a33e-8517a813f4bd"
 authors = ["SciML"]
-version = "1.1.4"
+version = "1.2.0"
 
 [deps]
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Optimisers = "3bd65402-5787-11e9-1adc-39752487f4e2"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
+SciMLPublic = "431bcebd-1456-4ced-9d72-93c2757fff0b"
 Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 ChainRulesCore = "1.20"
-ForwardDiff = "0.10, 1.4"
 Optimisers = "0.3, 0.4"
 Random = "1"
 SafeTestsets = "0.1, 1"
 SciMLBase = "2.71, 3.1"
-SciMLTesting = "2.1"
+SciMLPublic = "1"
+SciMLTesting = "2.4"
 Test = "1"
 Yao = "0.9.2"
 Zygote = "0.7.11, 0.8"

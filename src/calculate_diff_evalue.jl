@@ -1,3 +1,25 @@
+"""
+    map_to_circuit(a, j, map::AbstractFeatureMap)
+
+Return the feature-map derivative contribution for circuit index `j`.
+
+# Arguments
+
+- `a`: Derivative of [`phi`](@ref) at the current mesh coordinate.
+- `j`: Positive circuit index.
+- `map`: Feature-map configuration.
+
+# Returns
+
+Returns the scalar factor multiplying the parameter-shift expectation
+difference for circuit index `j`.
+
+# Rules
+
+Extensions may define a method only for an [`AbstractFeatureMap`](@ref) subtype
+they own. The result must preserve the derivative of the angles returned by
+[`load`](@ref) for that circuit index.
+"""
 function map_to_circuit(a, ::Real, ::Union{ChebyshevSparse, Product})
     return a
 end
