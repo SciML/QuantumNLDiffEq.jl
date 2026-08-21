@@ -1,10 +1,10 @@
 module QuantumNLDiffEq
 
 import Yao: AbstractBlock, zero_state, expect, dispatch!, dispatch, chain, Add, Scale,
-    TimeEvolution, IdentityGate, igate
+    TimeEvolution, IdentityGate, igate, EasyBuild, Ry, Z, nparameters, parameters, put
 import Optimisers
 import Zygote: gradient, pullback
-import SciMLBase: AbstractODEProblem, ODEFunction
+import SciMLBase: AbstractODEProblem, ODEFunction, ODEProblem
 import ChainRulesCore: rrule, NoTangent
 import SciMLPublic: @public
 
@@ -545,4 +545,5 @@ function tr_custom!(
 end
 
 export loss, train!, DQCType, DQCConfig
+include("precompile.jl")
 end
