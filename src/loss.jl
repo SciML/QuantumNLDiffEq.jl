@@ -100,8 +100,8 @@ function loss_reg(
     for x in 1:length(rp.M_reg)
         evalue = [
             calculate_evalue(
-                    DQC, cost[i], u0[i], abh, theta, rp.M_reg[x], rp.M_reg[1]
-                )
+                DQC, cost[i], u0[i], abh, theta, rp.M_reg[x], rp.M_reg[1]
+            )
                 for i in 1:no_eqns
         ]
         loss_ind = [loss(evalue[i], rp.u_reg[i][x]) for i in 1:no_eqns]
@@ -121,8 +121,8 @@ function loss_reg(
     for x in 1:length(rp.M_reg)
         evalue = [
             calculate_evalue(
-                    DQC[i], cost[i], u0[i], abh, theta[i], rp.M_reg[x], rp.M_reg[1]
-                )
+                DQC[i], cost[i], u0[i], abh, theta[i], rp.M_reg[x], rp.M_reg[1]
+            )
                 for i in 1:no_eqns
         ]
         loss_ind = [loss(evalue[i], rp.u_reg[i][x]) for i in 1:no_eqns]
