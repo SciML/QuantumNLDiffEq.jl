@@ -6,5 +6,11 @@ versions = ["lts", "1", "pre"]
 # grouped-tests default of 120 min cancels it mid-run, so pin the job timeout to 6h.
 timeout = 360
 
+["Core 32-bit"]
+group = "Core"
+versions = ["1"]
+os = ["ubuntu-latest"]
+arch = "x86"
+
 [QA]
 versions = ["lts", "1"]
