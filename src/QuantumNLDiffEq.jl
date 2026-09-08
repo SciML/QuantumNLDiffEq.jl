@@ -121,7 +121,7 @@ map = QuantumNLDiffEq.ChebyshevSparse(2)
 ```
 """
 struct ChebyshevSparse <: AbstractFeatureMap
-    pc::Int64
+    pc::Int
 end
 
 """
@@ -146,7 +146,7 @@ map = QuantumNLDiffEq.ChebyshevTower(2)
 ```
 """
 struct ChebyshevTower <: AbstractFeatureMap
-    pc::Int64
+    pc::Int
 end
 
 """
@@ -344,7 +344,7 @@ Base.@kwdef mutable struct DQCType
     fm::AbstractBlock
     cost::Union{Vector{<:AbstractBlock}, Vector{<:Vector{<:AbstractBlock}}}
     var::AbstractBlock
-    N::Int64
+    N::Int
     evol::Union{TimeEvolution, IdentityGate} = igate(N)
 end
 
