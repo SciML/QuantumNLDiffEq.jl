@@ -11,6 +11,8 @@ group = "Core"
 versions = ["1"]
 os = ["ubuntu-latest"]
 arch = "x86"
+# x86 is substantially slower than x64 for this suite (x64 ~3.5h); keep the 6h cap.
+timeout = 360
 
 [QA]
 versions = ["lts", "1"]
